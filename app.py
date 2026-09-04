@@ -85,8 +85,7 @@ if trace_btn:
         font={"face": "Helvetica", "size": 15, "color": "#FFFFFF"},
         margin=12
     )
-
-    # Edges with neat labels
+    # Edges with clean above-line positioning and dark background halo
     def add_edge_clean(src, dst, text):
         net.add_edge(
             src, 
@@ -96,10 +95,11 @@ if trace_btn:
             width=2,
             arrows="to",
             font={
-                "align": "horizontal",
-                "size": 13, 
+                "align": "top",           # Text line ke theek upar float karega
+                "size": 11,               # Chhota clean font jo squeeze na ho
                 "color": "#FFFFFF", 
-                "background": "#12131C"
+                "background": "#12131C",  # Line ko mask karega taaki text kaate nahi
+                "vadjust": -4             # Label ko arrow se 4px aur upar lift karega
             }
         )
 
@@ -109,7 +109,7 @@ if trace_btn:
     add_edge_clean("C1", "D", "hop 3")
     add_edge_clean("C2", "D", "hop 3")
 
-    # Set Layout to Left-to-Right and disable physics chaos
+    # Set Layout with wider column gaps (No Overlapping!)
     net.set_options("""
     {
       "layout": {
@@ -117,8 +117,8 @@ if trace_btn:
           "enabled": true,
           "direction": "LR",
           "sortMethod": "directed",
-          "levelSeparation": 180,
-          "nodeSpacing": 100
+          "levelSeparation": 280,
+          "nodeSpacing": 140
         }
       },
       "physics": {
@@ -128,11 +128,12 @@ if trace_btn:
         "smooth": {
           "type": "cubicBezier",
           "forceDirection": "horizontal",
-          "roundness": 0.4
+          "roundness": 0.3
         }
       }
     }
     """)
+
 
     with tempfile.NamedTemporaryFile(delete=False, suffix=".html") as tmp_file:
         net.save_graph(tmp_file.name)
