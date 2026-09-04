@@ -85,24 +85,26 @@ if trace_btn:
         font={"face": "Helvetica", "size": 15, "color": "#FFFFFF"},
         margin=12
     )
-    # Edges with clean above-line positioning and dark background halo
+    # Edges with light, crisp font and proper clearance
     def add_edge_clean(src, dst, text):
         net.add_edge(
             src, 
             dst, 
             label=text, 
-            color="#FFFFFF", 
-            width=2,
+            color="#A0AEC0",          # Thoda soft white/grey arrow (zyada aggressive nahi lagega)
+            width=1.5,                # Thinner, cleaner arrow line
             arrows="to",
             font={
-                "align": "top",           # Text line ke theek upar float karega
-                "size": 11,               # Chhota clean font jo squeeze na ho
-                "color": "#FFFFFF", 
-                "background": "#12131C",  # Line ko mask karega taaki text kaate nahi
-                "vadjust": -4             # Label ko arrow se 4px aur upar lift karega
+                "align": "top",
+                "size": 11,
+                "face": "system-ui, -apple-system, sans-serif", # Clean modern font
+                "color": "#CBD5E1",       # Pure white ke bajay soft grey-white (light effect)
+                "background": "#12131C",
+                "strokeWidth": 0,         # 0 stroke width se bold look khatam ho jata hai
+                "vadjust": -5             # Arrow se 5px upar
             }
         )
-
+        
     add_edge_clean("A", "B", "hop 1")
     add_edge_clean("B", "C1", "hop 2a")
     add_edge_clean("B", "C2", "hop 2b")
