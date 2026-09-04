@@ -29,8 +29,7 @@ if trace_btn:
     net = Network(height="500px", width="100%", bgcolor="#1a1a24", font_color="white", directed=True)
     
     # Physics engine configure (spring-like bounce effect)
-    net.force_atlas_2based(gravity=-50, central_gravity=0.01, spring_length=100, spring_strength=0.08)
-
+    net.force_atlas_2based(gravity=-80, central_gravity=0.005, spring_length=200, spring_strength=0.05)
     # 1. Victim / Suspect Node (RED)
     net.add_node(
         "A", 
