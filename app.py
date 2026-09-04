@@ -311,6 +311,17 @@ def trace_fund_flow(
             })
 
     return graph, attributions, calls_made
+# In contracts ko graph me node banne se block karo
+IGNORED_CONTRACTS = {
+    "0xdac17f958d2ee523a2206206994597c13d831ec7",  # USDT Contract
+    "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",  # USDC Contract
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",  # WETH Contract
+}
+
+# trace_fund_flow ke andar loop me dest check lagao:
+for dest, meta in top_dests:
+    if dest in IGNORED_CONTRACTS:
+        continue  # USDT contract ko mule node mat banao
 
 
 def calculate_confidence_score(attributions: list, hop_reached: int, max_hops: int) -> float:
