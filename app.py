@@ -121,20 +121,24 @@ def trace_fund_flow(start_address: str, chain_id: int, api_key: str,
     frontier = [start_addr_clean]
     visited = {start_addr_clean}
     calls_made = 0
+    hop = 0
 
-    for hop in range(1, max_hops + 1):
+    # INFINITE / UNBOUNDED LOOP: Chalta rahega jab tak VASP na mil jaye
+    while frontier:
+        hop += 1
         next_frontier = []
+
         for wallet in frontier:
             if progress_cb:
-                progress_cb(f"Tracing Hop {hop}: querying {wallet[:10]}…")
+                progress_cb(f"Hop {hop}: Tracing {wallet[:10]}... (Total calls: {calls_made})")
 
             try:
                 txs = fetch_outgoing_txs(wallet, chain_id, api_key)
-            except Exception as e:
+            except Exception:
                 txs = []
             finally:
                 calls_made += 1
-                time.sleep(0.3)  # Rate limit safety
+                time.sleep(0.3)  # Etherscan free-tier rate limit protect karne ke liye
 
             if not txs:
                 continue
@@ -154,7 +158,6 @@ def trace_fund_flow(start_address: str, chain_id: int, api_key: str,
                 eth_value = meta["value"] / 1e18 if meta["value"] > 0 else 0.05
                 is_vasp = dest in KNOWN_VASP_WALLETS
 
-                # Explicitly add/update node attributes
                 graph.add_node(
                     dest,
                     role="vasp" if is_vasp else "intermediate",
@@ -181,23 +184,15 @@ def trace_fund_flow(start_address: str, chain_id: int, api_key: str,
             visited.add(wallet)
 
         frontier = next_frontier
-        if not frontier or attributions:
+
+        # STOPPING CONDITIONS:
+        # 1. Target VASP milte hi break
+        if attributions:
             break
 
-    # FALLBACK MOCK FOR DEMO: Agar real trace kisi known exchange tak na pahuche, 
-    # toh last hop ke aage ek identified VASP connect kar do taaki presentation me result dikhe
-    if not attributions and graph.number_of_nodes() > 1:
-        last_nodes = [n for n in graph.nodes if graph.out_degree(n) == 0 and n != start_addr_clean]
-        if last_nodes:
-            target_leaf = last_nodes[0]
-            binance_hot = "0x28c6c06298d514db089934071355e5743bf21d60"
-            graph.add_node(binance_hot, role="vasp", hop=2, label="Binance (Hot Wallet 14)")
-            graph.add_edge(target_leaf, binance_hot, value=0.0099, hash="0x7f4...auto", hop=2)
-            attributions.append({
-                "node": binance_hot,
-                "vasp": "Binance (Hot Wallet 14)",
-                "hop": 2
-            })
+        # 2. Hard Safety Break (Optional): Taaki Streamlit 1000 calls karke crash na ho
+        if hop >= 50:
+            break
 
     return graph, attributions, calls_made
 
