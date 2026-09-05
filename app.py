@@ -207,6 +207,14 @@ def fetch_all_outgoing_txs(address: str, chain_id: int, api_key: str, track_toke
 # Multi-Hop Breadth-First Graph Traversal
 # -------------------------------------------------------------------
 
+# In contracts ko graph me intermediate mule banne se exclude karo
+IGNORED_CONTRACTS = {
+    "0xdac17f958d2ee523a2206206994597c13d831ec7",  # USDT Contract
+    "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",  # USDC Contract
+    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",  # WETH Contract
+    "0x4fabb145d64652a948d72533023f6e7a623c7c53",  # BUSD Contract
+}
+
 def trace_fund_flow(
     start_address: str,
     chain_id: int,
@@ -239,16 +247,16 @@ def trace_fund_flow(
 
             txs = fetch_all_outgoing_txs(wallet, chain_id, api_key, track_tokens=track_tokens)
             calls_made += (2 if track_tokens else 1)
-            time.sleep(0.3)  # Rate-limit safety margin
+            time.sleep(0.3)
 
             if not txs:
                 continue
 
-            # Keep dominant transfer per destination
+            # Keep dominant transfer per destination & ignore smart contract addresses
             by_dest = {}
             for tx in txs:
-                dest = tx["to"]
-                if not dest or dest == wallet:
+                dest = tx["to"].lower()
+                if not dest or dest == wallet or dest in IGNORED_CONTRACTS:
                     continue
                 if dest not in by_dest or tx["value"] > by_dest[dest]["value"]:
                     by_dest[dest] = tx
@@ -293,7 +301,7 @@ def trace_fund_flow(
         if attributions:
             break
 
-    # Transparent Evaluation Fallback
+    # Evaluation Fallback
     if not attributions and graph.number_of_nodes() > 1 and simulation_fallback:
         leaves = [n for n in graph.nodes if graph.out_degree(n) == 0 and n != start]
         if leaves:
@@ -311,12 +319,7 @@ def trace_fund_flow(
             })
 
     return graph, attributions, calls_made
-# In contracts ko graph me node banne se block karo
-IGNORED_CONTRACTS = {
-    "0xdac17f958d2ee523a2206206994597c13d831ec7",  # USDT Contract
-    "0xa0b86991c6218b36c1d19d4a2e9eb0ce3606eb48",  # USDC Contract
-    "0xc02aaa39b223fe8d0a0e5c4f27ead9083c756cc2",  # WETH Contract
-}
+
 
 # trace_fund_flow ke andar loop me dest check lagao:
 for dest, meta in top_dests:
