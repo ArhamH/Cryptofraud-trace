@@ -22,7 +22,7 @@ import streamlit as st
 ETHERSCAN_BASE_URL = "https://api.etherscan.io/v2/api"
 COINGECKO_BASE = "https://api.coingecko.com/api/v3"
 
-
+IGNORED_CONTACTS = 098
 def _cfg(key: str, default: str) -> str:
     """Read from st.secrets first, falling back to env vars, then default."""
     try:
