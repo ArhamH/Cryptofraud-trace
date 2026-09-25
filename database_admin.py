@@ -60,10 +60,7 @@ def get_supabase_client():
 # =====================================================================
 
 def require_login(client):
-    """Blocks the app behind a login form until an investigator signs in.
-    Accounts must be provisioned by an admin in the Supabase project
-    (Auth > Users) — there is intentionally no public self-signup for a
-    law-enforcement tool."""
+    """Blocks the app behind a login form until an investigator signs in."""
     if st.session_state.get("auth_user"):
         return
 
@@ -71,16 +68,25 @@ def require_login(client):
     st.caption("CryptoFraud Trace — restricted to authorized cyber crime investigators.")
 
     if client is None:
-        st.error(
-            "Authentication backend unconfigured. Set SUPABASE_URL and SUPABASE_KEY "
-            "in secrets or environment variables."
-        )
+        st.warning("⚠️ Running in Local/Offline Mode (Database client unconfigured).")
+        if st.button("🧪 Launch Offline Evaluator Demo", type="primary", use_container_width=True):
+            st.session_state.auth_user = "evaluator.demo@sih.gov.in"
+            st.rerun()
         st.stop()
+
+    # Place Demo Access right at the top for evaluators
+    st.info("💡 **SIH Evaluation / Demo Access:** Click below to bypass manual sign-in.")
+    if st.button("🧪 One-Click Evaluator Demo Access", type="primary", use_container_width=True):
+        st.session_state.auth_user = "evaluator.demo@sih.gov.in"
+        st.rerun()
+
+    st.markdown("---")
+    st.caption("Or sign in with registered LEA credentials:")
 
     with st.form("login_form"):
         email = st.text_input("Investigator Email")
         password = st.text_input("Password", type="password")
-        submitted = st.form_submit_button("Sign In")
+        submitted = st.form_submit_button("Sign In", use_container_width=True)
 
     if submitted:
         try:
@@ -92,7 +98,9 @@ def require_login(client):
                 st.error("Invalid credentials.")
         except Exception as e:
             st.error(f"Login failed: {e}")
+
     st.stop()
+
 
 
 # =====================================================================
