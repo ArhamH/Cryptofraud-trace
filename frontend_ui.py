@@ -2,9 +2,10 @@
 frontend_ui.py
 -----------------
 Streamlit interface: sidebar controls, Pyvis physics graph renderer, 
-benchmark replay runner, and BNSS PDF export.
+benchmark replay runner, and BNSS PDF export with margin-safe image rasterization.
 """
 
+import re
 import tempfile
 import time
 from datetime import datetime, timezone
@@ -42,7 +43,7 @@ def render_graph(graph: nx.DiGraph) -> str:
         if attrs.get("priced"):
             edge_label = f"${attrs.get('usd', 0):,.0f}"
         else:
-            edge_label = f"{attrs.get('amount', '')} {attrs.get('symbol', '')} ⚠️unpriced"
+            edge_label = f"{attrs.get('amount', '')} {attrs.get('symbol', '')} unpriced"
         if attrs.get("is_peel"):
             edge_label += " [peel]"
         
@@ -85,19 +86,25 @@ def render_graph_png(graph: nx.DiGraph) -> bytes | None:
         import matplotlib.pyplot as plt
         from io import BytesIO
 
-        pos = nx.spring_layout(graph, seed=42, k=0.9)
-        fig, ax = plt.subplots(figsize=(9, 5))
+        pos = nx.spring_layout(graph, seed=42, k=1.2)
+        fig, ax = plt.subplots(figsize=(10, 4.2))
+        ax.margins(0.25)
+        
         colors = [NODE_COLORS.get(attrs.get("role", "intermediate"), "#7f8c8d") for _, attrs in graph.nodes(data=True)]
-        sizes = [700 if attrs.get("role") == "source" else (600 if attrs.get("role") in ("vasp", "deposit_address") else 250) for _, attrs in graph.nodes(data=True)]
+        sizes = [650 if attrs.get("role") == "source" else (550 if attrs.get("role") in ("vasp", "deposit_address") else 220) for _, attrs in graph.nodes(data=True)]
         
         nx.draw_networkx_nodes(graph, pos, node_color=colors, node_size=sizes, ax=ax)
-        nx.draw_networkx_edges(graph, pos, arrows=True, arrowsize=12, ax=ax, edge_color="#999999")
-        labels = {n: attrs.get("label", short_addr(n)).split("\n")[0] for n, attrs in graph.nodes(data=True)}
-        nx.draw_networkx_labels(graph, pos, labels=labels, font_size=7, ax=ax)
+        nx.draw_networkx_edges(graph, pos, arrows=True, arrowsize=14, ax=ax, edge_color="#888888", width=1.5)
+        
+        raw_labels = {n: attrs.get("label", short_addr(n)).split("\n")[0] for n, attrs in graph.nodes(data=True)}
+        clean_labels = {n: re.sub(r'[^\x00-\x7F]+', '', text).strip() for n, text in raw_labels.items()}
+        
+        nx.draw_networkx_labels(graph, pos, labels=clean_labels, font_size=7.5, font_family="sans-serif", ax=ax)
+        
         ax.axis("off")
         fig.tight_layout()
         buf = BytesIO()
-        fig.savefig(buf, format="png", dpi=160)
+        fig.savefig(buf, format="png", dpi=200, bbox_inches="tight")
         plt.close(fig)
         return buf.getvalue()
     except Exception:
