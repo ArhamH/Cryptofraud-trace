@@ -2,10 +2,12 @@
 database_admin.py
 --------------------
 Supabase connection, authentication, VASP directory indexing, and sanctions sync.
+Supports credential resolution across both st.secrets and system environment variables.
 """
 
-import streamlit as st
+import os
 import requests
+import streamlit as st
 
 try:
     from supabase import create_client
@@ -20,16 +22,48 @@ from system_architecture import (
     classify_address_family,
 )
 
+
+# =====================================================================
+# Credential Helper (Supports Streamlit Cloud secrets & Render os.environ)
+# =====================================================================
+
+def _get_credential(key: str, default: str = "") -> str:
+    """Reads credentials from st.secrets first, falling back to os.environ."""
+    try:
+        if key in st.secrets:
+            return st.secrets[key]
+    except Exception:
+        pass
+    return os.environ.get(key, default)
+
+
+# =====================================================================
+# Supabase client
+# =====================================================================
+
 @st.cache_resource
 def get_supabase_client():
     if create_client is None:
         return None
     try:
-        return create_client(st.secrets["SUPABASE_URL"], st.secrets["SUPABASE_KEY"])
+        url = _get_credential("SUPABASE_URL")
+        key = _get_credential("SUPABASE_KEY")
+        if not url or not key:
+            return None
+        return create_client(url, key)
     except Exception:
         return None
 
+
+# =====================================================================
+# Investigator authentication (Supabase Auth — app-level login)
+# =====================================================================
+
 def require_login(client):
+    """Blocks the app behind a login form until an investigator signs in.
+    Accounts must be provisioned by an admin in the Supabase project
+    (Auth > Users) — there is intentionally no public self-signup for a
+    law-enforcement tool."""
     if st.session_state.get("auth_user"):
         return
 
@@ -37,7 +71,10 @@ def require_login(client):
     st.caption("CryptoFraud Trace — restricted to authorized cyber crime investigators.")
 
     if client is None:
-        st.error("Authentication backend unconfigured. Set SUPABASE_URL and SUPABASE_KEY in secrets.")
+        st.error(
+            "Authentication backend unconfigured. Set SUPABASE_URL and SUPABASE_KEY "
+            "in secrets or environment variables."
+        )
         st.stop()
 
     with st.form("login_form"):
@@ -57,7 +94,15 @@ def require_login(client):
             st.error(f"Login failed: {e}")
     st.stop()
 
+
+# =====================================================================
+# VASP directory sync + case persistence
+# =====================================================================
+
 def fetch_vasp_directory(client) -> dict:
+    """Static seed directory, overlaid with any admin-curated rows from
+    the `vasp_directory` Supabase table (falls back to seed-only if the
+    table read fails or no client is configured)."""
     directory = {
         "evm": {**DEFAULT_VASP_EVM, **SANCTIONED_EVM},
         "btc": dict(DEFAULT_VASP_BTC),
@@ -67,15 +112,16 @@ def fetch_vasp_directory(client) -> dict:
         try:
             res = client.table("vasp_directory").select("address, vasp_name").execute()
             for row in (res.data or []):
-                addr = row["address"].strip()
+                addr = row.get("address", "").strip()
                 fam = classify_address_family(addr)
                 if fam is None:
                     continue
                 key = addr.lower() if fam == "evm" else addr
-                directory[fam][key] = row["vasp_name"].strip()
+                directory[fam][key] = row.get("vasp_name", "").strip()
         except Exception:
-            pass
+            pass  # fall back to static seed directory
     return directory
+
 
 def save_case_to_db(client, case_data: dict):
     if client is None:
@@ -86,15 +132,24 @@ def save_case_to_db(client, case_data: dict):
     except Exception as e:
         return False, f"Database write failed: {e}"
 
+
+# =====================================================================
+# External label dataset sync — OpenSanctions / OFAC crypto wallets
+# =====================================================================
+
+OPENSANCTIONS_SEARCH_URL = "https://api.opensanctions.org/search/default"
+
+
 def sync_opensanctions_labels(client, api_key: str = "", chain_filter: str = None, limit: int = 200):
     if client is None:
-        return 0, "Database client unconfigured."
-    key = api_key or st.secrets.get("OPENSANCTIONS_API_KEY", "")
+        return 0, "Database client unconfigured — sanctioned labels not persisted."
+
+    key = api_key or _get_credential("OPENSANCTIONS_API_KEY")
     headers = {"Authorization": f"ApiKey {key}"} if key else {}
     params = {"schema": "CryptoWallet", "dataset": "sanctions", "limit": limit}
 
     try:
-        resp = requests.get("https://api.opensanctions.org/search/default", params=params, headers=headers, timeout=20)
+        resp = requests.get(OPENSANCTIONS_SEARCH_URL, params=params, headers=headers, timeout=20)
         resp.raise_for_status()
         results = resp.json().get("results", [])
     except Exception as e:
@@ -110,7 +165,10 @@ def sync_opensanctions_labels(client, api_key: str = "", chain_filter: str = Non
             fam = classify_address_family(addr)
             if fam is None or (chain_filter and fam != chain_filter):
                 continue
-            rows.append({"address": addr, "vasp_name": f"⚠️ SANCTIONED: {caption} (OFAC/OpenSanctions)"})
+            rows.append({
+                "address": addr,
+                "vasp_name": f"SANCTIONED: {caption} (OFAC/OpenSanctions)"
+            })
 
     if not rows:
         return 0, "No sanctioned records returned."
@@ -120,11 +178,13 @@ def sync_opensanctions_labels(client, api_key: str = "", chain_filter: str = Non
     except Exception as e:
         return 0, f"Database write failed: {e}"
 
+
 def fetch_recent_cases(client, limit: int = 20):
+    """Returns (records, error_message). records is None on failure."""
     if client is None:
         return None, "Case repository requires active Supabase connection."
     try:
         res = client.table("cases").select("*").order("created_at", desc=True).limit(limit).execute()
         return res.data or [], None
     except Exception as e:
-        return None, f"Could not load cases: {e}"
+        return None, f"Could not load case repository: {e}"
