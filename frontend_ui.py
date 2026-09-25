@@ -124,7 +124,7 @@ def render_sidebar(supabase_client, vasp_directory, api_key) -> dict:
     st.sidebar.markdown("---")
     st.sidebar.header("Investigation Controls")
     chain_name = st.sidebar.selectbox("Blockchain Ledger", list(CHAINS.keys()))
-    max_hops = st.sidebar.slider("Traversal Max Hops", 2, 15, 6)
+    max_hops = st.sidebar.slider("Traversal Max Hops", 2, 10, 5)
     max_branches = st.sidebar.slider("Branches per Mule Hop", 1, 4, 2)
     detect_sweeps = st.sidebar.checkbox("Detect Deposit Sweeps", value=True)
     exhaustive_trace = st.sidebar.checkbox("Trace all branches", value=True)
@@ -228,7 +228,6 @@ def render_investigation_tab(settings, api_key, vasp_directory, supabase_client)
     max_branches = settings["max_branches"]
     chain_family = CHAINS[chain_name]["family"]
 
-    # Preset wallet address selector chips
     st.markdown("**Real-World Incident Presets:**")
     p1, p2, p3 = st.columns(3)
     if p1.button("📌 WazirX Breach (ETH)"):
@@ -275,9 +274,9 @@ def render_investigation_tab(settings, api_key, vasp_directory, supabase_client)
     status = st.empty()
     progress_bar = st.progress(0)
 
-    def on_progress(hop, wallet):
+    def on_progress(hop, info_str):
         progress_bar.progress(min(int(hop / max_hops * 100), 98))
-        status.info(f"Traversing Hop {hop}/{max_hops}: Analyzing node `{short_addr(wallet)}`...")
+        status.info(f"Traversing Hop {hop}/{max_hops}: {info_str}...")
 
     start_time = time.time()
     graph, attributions, calls_made = trace_fund_flow(

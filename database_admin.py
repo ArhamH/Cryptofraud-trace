@@ -2,7 +2,8 @@
 database_admin.py
 --------------------
 Supabase connection, authentication, VASP directory indexing, and sanctions sync.
-Supports credential resolution across both st.secrets and system environment variables.
+Supports credential resolution across both st.secrets and system environment variables (Render),
+and includes one-click demo evaluator access.
 """
 
 import os
@@ -22,24 +23,13 @@ from system_architecture import (
     classify_address_family,
 )
 
-
-# =====================================================================
-# Credential Helper (Supports Streamlit Cloud secrets & Render os.environ)
-# =====================================================================
-
 def _get_credential(key: str, default: str = "") -> str:
-    """Reads credentials from st.secrets first, falling back to os.environ."""
     try:
         if key in st.secrets:
             return st.secrets[key]
     except Exception:
         pass
     return os.environ.get(key, default)
-
-
-# =====================================================================
-# Supabase client
-# =====================================================================
 
 @st.cache_resource
 def get_supabase_client():
@@ -54,31 +44,22 @@ def get_supabase_client():
     except Exception:
         return None
 
-
-# =====================================================================
-# Investigator authentication (Supabase Auth — app-level login)
-# =====================================================================
-
 def require_login(client):
-    """Blocks the app behind a login form until an investigator signs in."""
     if st.session_state.get("auth_user"):
         return
 
     st.title("🔐 Investigator Login")
     st.caption("CryptoFraud Trace — restricted to authorized cyber crime investigators.")
 
-    if client is None:
-        st.warning("⚠️ Running in Local/Offline Mode (Database client unconfigured).")
-        if st.button("🧪 Launch Offline Evaluator Demo", type="primary", use_container_width=True):
-            st.session_state.auth_user = "evaluator.demo@sih.gov.in"
-            st.rerun()
-        st.stop()
-
-    # Place Demo Access right at the top for evaluators
-    st.info("💡 **SIH Evaluation / Demo Access:** Click below to bypass manual sign-in.")
+    # High-prominence One-Click Demo Access button
+    st.info("💡 **SIH Evaluation Access:** Click below to bypass authentication.")
     if st.button("🧪 One-Click Evaluator Demo Access", type="primary", use_container_width=True):
         st.session_state.auth_user = "evaluator.demo@sih.gov.in"
         st.rerun()
+
+    if client is None:
+        st.warning("⚠️ Running in Local/Offline Mode (Database client unconfigured).")
+        st.stop()
 
     st.markdown("---")
     st.caption("Or sign in with registered LEA credentials:")
@@ -101,16 +82,7 @@ def require_login(client):
 
     st.stop()
 
-
-
-# =====================================================================
-# VASP directory sync + case persistence
-# =====================================================================
-
 def fetch_vasp_directory(client) -> dict:
-    """Static seed directory, overlaid with any admin-curated rows from
-    the `vasp_directory` Supabase table (falls back to seed-only if the
-    table read fails or no client is configured)."""
     directory = {
         "evm": {**DEFAULT_VASP_EVM, **SANCTIONED_EVM},
         "btc": dict(DEFAULT_VASP_BTC),
@@ -127,9 +99,8 @@ def fetch_vasp_directory(client) -> dict:
                 key = addr.lower() if fam == "evm" else addr
                 directory[fam][key] = row.get("vasp_name", "").strip()
         except Exception:
-            pass  # fall back to static seed directory
+            pass
     return directory
-
 
 def save_case_to_db(client, case_data: dict):
     if client is None:
@@ -140,24 +111,16 @@ def save_case_to_db(client, case_data: dict):
     except Exception as e:
         return False, f"Database write failed: {e}"
 
-
-# =====================================================================
-# External label dataset sync — OpenSanctions / OFAC crypto wallets
-# =====================================================================
-
-OPENSANCTIONS_SEARCH_URL = "https://api.opensanctions.org/search/default"
-
-
 def sync_opensanctions_labels(client, api_key: str = "", chain_filter: str = None, limit: int = 200):
     if client is None:
-        return 0, "Database client unconfigured — sanctioned labels not persisted."
+        return 0, "Database client unconfigured."
 
     key = api_key or _get_credential("OPENSANCTIONS_API_KEY")
     headers = {"Authorization": f"ApiKey {key}"} if key else {}
     params = {"schema": "CryptoWallet", "dataset": "sanctions", "limit": limit}
 
     try:
-        resp = requests.get(OPENSANCTIONS_SEARCH_URL, params=params, headers=headers, timeout=20)
+        resp = requests.get("https://api.opensanctions.org/search/default", params=params, headers=headers, timeout=20)
         resp.raise_for_status()
         results = resp.json().get("results", [])
     except Exception as e:
@@ -186,13 +149,11 @@ def sync_opensanctions_labels(client, api_key: str = "", chain_filter: str = Non
     except Exception as e:
         return 0, f"Database write failed: {e}"
 
-
 def fetch_recent_cases(client, limit: int = 20):
-    """Returns (records, error_message). records is None on failure."""
     if client is None:
         return None, "Case repository requires active Supabase connection."
     try:
         res = client.table("cases").select("*").order("created_at", desc=True).limit(limit).execute()
         return res.data or [], None
     except Exception as e:
-        return None, f"Could not load case repository: {e}"
+        return None, f"Could not load cases: {e}"

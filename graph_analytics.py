@@ -1,11 +1,11 @@
 """
 graph_analytics.py
 ---------------------
-Chain-family-agnostic multi-hop traversal supporting UTXO clustering, 
+High-speed multithreaded BFS traversal engine supporting UTXO clustering, 
 deposit-forwarding sweep heuristics, peel-chain detection, and haircut taint scoring.
 """
 
-import time
+from concurrent.futures import ThreadPoolExecutor
 import networkx as nx
 
 from system_architecture import (
@@ -13,7 +13,7 @@ from system_architecture import (
     PEEL_SKIM_MIN_SHARE, PEEL_SKIM_MAX_SHARE,
     SWEEP_WINDOW_SECONDS, SWEEP_MIN_FORWARD_RATIO,
 )
-from blockchain_api import fetch_transfers, annotate_usd_values, fetch_inbound_summary
+from blockchain_api import fetch_transfers, annotate_usd_values
 
 class _UnionFind:
     def __init__(self):
@@ -41,39 +41,24 @@ def _detect_sweep_forward(dest_key, chain_key, api_key, vasp_map, family, inboun
         if not outgoing:
             return None
         outgoing = annotate_usd_values(outgoing, chain_key)
+        for t in outgoing[:3]:
+            to_raw = t.get("to")
+            if not to_raw:
+                continue
+            to_key = to_raw.lower() if family == "evm" else to_raw
+            if to_key in vasp_map:
+                ts = t.get("timestamp", 0) or 0
+                if inbound_ts and ts and not (0 <= ts - inbound_ts <= SWEEP_WINDOW_SECONDS):
+                    continue
+                if inbound_usd and t.get("usd", 0.0) < SWEEP_MIN_FORWARD_RATIO * inbound_usd:
+                    continue
+                return vasp_map[to_key]
     except Exception:
-        return None
-
-    for t in outgoing:
-        to_raw = t.get("to")
-        if not to_raw:
-            continue
-        to_key = to_raw.lower() if family == "evm" else to_raw
-        if to_key not in vasp_map:
-            continue
-        ts = t.get("timestamp", 0) or 0
-        if inbound_ts and ts and not (0 <= ts - inbound_ts <= SWEEP_WINDOW_SECONDS):
-            continue
-        if inbound_usd and t.get("usd", 0.0) < SWEEP_MIN_FORWARD_RATIO * inbound_usd:
-            continue
-        return vasp_map[to_key]
+        pass
     return None
 
-def _wallet_total_balance_proxy(wallet_key, chain_key, api_key, family, hop_total_usd):
-    if family == "evm":
-        try:
-            inbound = fetch_inbound_summary(wallet_key, chain_key, api_key)
-            if inbound:
-                inbound = annotate_usd_values(inbound, chain_key)
-                total = sum(t.get("usd", 0.0) for t in inbound)
-                if total > 0:
-                    return total
-        except Exception:
-            pass
-    return hop_total_usd
-
 def trace_fund_flow(start_address, chain_key, api_key, vasp_directory,
-                     max_hops=8, max_branches=2, exhaustive_trace=True,
+                     max_hops=6, max_branches=2, exhaustive_trace=True,
                      detect_sweeps=True, progress_cb=None):
     family = CHAINS[chain_key]["family"]
     vasp_map = vasp_directory[family]
@@ -99,20 +84,27 @@ def trace_fund_flow(start_address, chain_key, api_key, vasp_directory,
 
     while frontier and hop < max_hops:
         hop += 1
-        next_frontier = []
+        current_layer = frontier[:]
+        frontier = []
 
-        for wallet, wallet_taint, inbound_ts in frontier:
+        if progress_cb:
+            progress_cb(hop, f"{len(current_layer)} node(s) concurrently")
+
+        # Concurrent multithreaded fetching across current layer
+        def _fetch_worker(item):
+            w_addr, w_taint, in_ts = item
+            raw = fetch_transfers(w_addr, chain_key, api_key)
+            annotated = annotate_usd_values(raw, chain_key) if raw else []
+            return (w_addr, w_taint, in_ts, annotated)
+
+        with ThreadPoolExecutor(max_workers=5) as executor:
+            fetched_data = list(executor.map(_fetch_worker, current_layer))
+        calls_made += len(current_layer)
+
+        for wallet, wallet_taint, inbound_ts, transfers in fetched_data:
             wallet_key = canon(wallet.lower() if family == "evm" else wallet)
-            if progress_cb:
-                progress_cb(hop, wallet_key)
-
-            transfers = fetch_transfers(wallet, chain_key, api_key)
-            calls_made += 1
-            time.sleep(0.25)
             if not transfers:
                 continue
-
-            transfers = annotate_usd_values(transfers, chain_key)
 
             if uf:
                 for t in transfers:
@@ -126,9 +118,7 @@ def trace_fund_flow(start_address, chain_key, api_key, vasp_directory,
                 if not dest:
                     continue
                 dest_key = canon(dest.lower() if family == "evm" else dest)
-                if dest_key == wallet_key:
-                    continue
-                if family == "evm" and dest_key in IGNORED_CONTRACTS:
+                if dest_key == wallet_key or (family == "evm" and dest_key in IGNORED_CONTRACTS):
                     continue
                 if dest_key not in by_dest or t["usd"] > by_dest[dest_key]["usd"]:
                     by_dest[dest_key] = t
@@ -143,16 +133,15 @@ def trace_fund_flow(start_address, chain_key, api_key, vasp_directory,
                     share = meta["usd"] / hop_total_usd
                     if PEEL_SKIM_MIN_SHARE <= share <= PEEL_SKIM_MAX_SHARE:
                         peel_dests.append((dest_key, meta))
-                peel_dests = peel_dests[:3]
+                peel_dests = peel_dests[:2]
 
-            total_balance_proxy = _wallet_total_balance_proxy(
-                wallet_key, chain_key, api_key, family, hop_total_usd
-            )
             local_taint = wallet_taint
-            if total_balance_proxy and hop_total_usd:
-                local_taint = wallet_taint * min(1.0, hop_total_usd / total_balance_proxy)
             if wallet_key in graph.nodes:
                 graph.nodes[wallet_key]["taint"] = round(local_taint, 4)
+
+            # Prune dead/diluted branches to save execution cycles
+            if local_taint < 0.04:
+                continue
 
             peel_keys = {k for k, _ in peel_dests}
             for dest_key, meta in top_dests + peel_dests:
@@ -203,11 +192,10 @@ def trace_fund_flow(start_address, chain_key, api_key, vasp_directory,
                         "taint_score": round(local_taint, 4), "sweep_detected": True
                     })
                 elif dest_key not in visited:
-                    next_frontier.append((dest_key, local_taint, meta.get("timestamp", 0)))
+                    frontier.append((dest_key, local_taint * 0.95, meta.get("timestamp", 0)))
 
             visited.add(wallet_key)
 
-        frontier = next_frontier
         if attributions and not exhaustive_trace:
             break
 

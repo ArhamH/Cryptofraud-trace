@@ -14,9 +14,11 @@ COINGECKO_BASE = "https://api.coingecko.com/api/v3"
 
 def _cfg(key: str, default: str) -> str:
     try:
-        return st.secrets.get(key, default)
+        if key in st.secrets:
+            return st.secrets[key]
     except Exception:
-        return os.environ.get(key, default)
+        pass
+    return os.environ.get(key, default)
 
 MEMPOOL_BASE = _cfg("MEMPOOL_BASE", "https://mempool.space/api")
 SOLANA_RPC = _cfg("SOLANA_RPC", "https://api.mainnet-beta.solana.com")
@@ -89,11 +91,10 @@ SWEEP_WINDOW_SECONDS = 6 * 3600
 SWEEP_MIN_FORWARD_RATIO = 0.90
 
 STABLES = {"USDT", "USDC", "DAI", "BUSD", "TUSD", "USDP", "FDUSD"}
-NATIVE_COINGECKO_ID = {
-    "ETH": "ethereum", "BNB": "binancecoin",
-    "MATIC": "matic-network", "BTC": "bitcoin", "SOL": "solana"
+STATIC_BASE_PRICES = {
+    "ETH": 3400.0, "BNB": 580.0, "MATIC": 0.42, "POL": 0.42,
+    "BTC": 64000.0, "SOL": 150.0, "USDT": 1.0, "USDC": 1.0, "DAI": 1.0
 }
-PLATFORM_ID = {1: "ethereum", 56: "binance-smart-chain", 137: "polygon-pos"}
 
 def classify_address_family(addr: str):
     if not addr:
