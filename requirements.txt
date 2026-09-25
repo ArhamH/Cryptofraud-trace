@@ -1,6 +1,0 @@
-streamlit
-pyvis
-networkx
-requests
-supabase
-postgrest
