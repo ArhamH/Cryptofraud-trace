@@ -2,7 +2,7 @@
 frontend_ui.py
 -----------------
 Streamlit interface: sidebar controls, Pyvis physics graph renderer, 
-benchmark replay runner, and BNSS PDF export with margin-safe image rasterization.
+benchmark replay runner, preset chips, and BNSS PDF export with margin-safe image rasterization.
 """
 
 import re
@@ -161,6 +161,14 @@ def _render_findings(graph, attributions, hops_reached, elapsed, api_calls,
     m3.metric("Mule Nodes Monitored", graph.number_of_nodes())
     m4.metric("Ledger Query Time", "Cached (Replay)" if is_replay else f"{elapsed:.1f}s")
 
+    peel_detected = any(attrs.get("is_peel") for _, _, attrs in graph.edges(data=True))
+    sweep_detected = any(attrs.get("sweep_detected") for _, _, attrs in graph.edges(data=True))
+
+    col_tags = st.columns(3)
+    col_tags[0].info(f"Peel Chains Identified: {'Yes (Tagged Amber)' if peel_detected else 'None'}")
+    col_tags[1].info(f"Deposit Sweeps Resolved: {'Yes (Direct Hot Wallet Forward)' if sweep_detected else 'None'}")
+    col_tags[2].info("Chain-of-Custody Hashing: SHA-256 Sealed")
+
     if top_attribution:
         taint_str = f" | **Taint Score:** {top_attribution.get('taint_score', 1.0) * 100:.1f}%"
         st.success(
@@ -220,10 +228,20 @@ def render_investigation_tab(settings, api_key, vasp_directory, supabase_client)
     max_branches = settings["max_branches"]
     chain_family = CHAINS[chain_name]["family"]
 
-    example = EXAMPLE_ADDRESSES.get(chain_name, "")
+    # Preset wallet address selector chips
+    st.markdown("**Real-World Incident Presets:**")
+    p1, p2, p3 = st.columns(3)
+    if p1.button("📌 WazirX Breach (ETH)"):
+        st.session_state["wallet_input_box"] = "0x27fD43BABfbe83a81d14665b1a6fB8030A60C9b4"
+    if p2.button("📌 Poly Network (ETH)"):
+        st.session_state["wallet_input_box"] = "0xC8a65Fadf0e0dDAf421F28FEAb69Bf6E2E589963"
+    if p3.button("📌 Binance Hot Wallet (BTC)"):
+        st.session_state["wallet_input_box"] = "1NDyJtNTjmwk5xPNhjgAMu4HDHigtobu1s"
+
+    default_val = st.session_state.get("wallet_input_box", EXAMPLE_ADDRESSES.get(chain_name, ""))
     suspect_wallet = st.text_input(
         f"Victim-Reported Suspect Wallet ({chain_name})",
-        value=example,
+        value=default_val,
         help="Input the scam address reported on the 1930 / I4C cyber portal."
     )
 

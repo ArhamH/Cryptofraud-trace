@@ -45,7 +45,7 @@ CASES = {
                 "usd": 340000.0,
                 "hash": "0x3a9cb7127e77747e452601ab03932fa5a73e6559bc8bb2798e4f16bc46a6fcf7",
                 "hop": 2,
-                "vasp_name": "⚠️ SANCTIONED: Tornado Cash Router (OFAC/SDN)",
+                "vasp_name": "SANCTIONED: Tornado Cash Router (OFAC/SDN)",
                 "taint_score": 0.88,
                 "is_peel": True,
                 "source_url": "https://etherscan.io/address/0x8589427373d6d84e98730d7795d8f6f8731fda0"

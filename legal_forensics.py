@@ -3,7 +3,7 @@ legal_forensics.py
 ---------------------
 Generates formal freeze notices under Section 94 BNSS (formerly Sec. 91 CrPC) 
 and Section 17 PMLA in plain text and court-admissible PDF format with SHA-256 integrity hash.
-Strictly sanitized for standard font rendering and compliant with national emblem regulations.
+Sanitized for standard PDF core fonts and compliant with statutory header requirements.
 """
 
 import re
@@ -12,7 +12,6 @@ from datetime import datetime, timezone
 from io import BytesIO
 
 def _sanitize_pdf_text(text: str) -> str:
-    """Removes non-ASCII characters, emojis, and control symbols that break standard PDF core fonts."""
     if not text:
         return ""
     clean = re.sub(r'[^\x00-\x7F]+', ' ', str(text))

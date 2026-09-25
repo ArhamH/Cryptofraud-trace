@@ -23,9 +23,11 @@ SOLANA_RPC = _cfg("SOLANA_RPC", "https://api.mainnet-beta.solana.com")
 
 def get_api_key() -> str:
     try:
-        return st.secrets["ETHERSCAN_API_KEY"]
+        if "ETHERSCAN_API_KEY" in st.secrets:
+            return st.secrets["ETHERSCAN_API_KEY"]
     except Exception:
-        return os.environ.get("ETHERSCAN_API_KEY", "")
+        pass
+    return os.environ.get("ETHERSCAN_API_KEY", "")
 
 CHAINS = {
     "Ethereum":        {"family": "evm", "chain_id": 1,   "native_symbol": "ETH"},
