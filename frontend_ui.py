@@ -1,9 +1,8 @@
 """
 frontend_ui.py
 -----------------
-Law Enforcement Investigative UI with modern Bento Hero Section and SmoothUI-inspired micro-interactions:
-Number-Flow metrics, Scramble-Hover/Copy card, Siri-Orb traversal loader,
-Price-Flow counters, and Animated-Tags. Fully responsive on mobile and desktop viewports.
+Law Enforcement Investigative UI with modern Bento Hero Section, AI Case Briefing,
+Number-Flow metrics, Scramble-Hover/Copy card, and Animated-Tags.
 """
 
 import re
@@ -24,6 +23,7 @@ from data_layer import (
 )
 from graph_engine import trace_fund_flow, calculate_confidence_score, score_nodes
 from legal_forensics import generate_freeze_notice, generate_freeze_notice_pdf
+from ai_assistant import generate_investigation_brief
 
 NODE_COLORS = {
     "source": "#e74c3c", "intermediate": "#7f8c8d",
@@ -33,7 +33,6 @@ NODE_COLORS = {
 PEEL_EDGE_COLOR = "#f39c12"
 
 def render_header():
-    """Responsive Dark Bento Hero Component for Desktop & Mobile."""
     hero_html = """
     <!DOCTYPE html>
     <html>
@@ -72,7 +71,7 @@ def render_header():
     </body>
     </html>
     """
-    components.html(hero_html, height=230, scrolling=False)
+    components.html(hero_html, height=240, scrolling=True)
 
 def render_smooth_orb_loader(status_text: str):
     html_code = f"""
@@ -83,19 +82,19 @@ def render_smooth_orb_loader(status_text: str):
       <script src="https://cdn.tailwindcss.com"></script>
     </head>
     <body class="bg-transparent m-0 p-0 font-sans">
-      <div class="flex flex-col items-center justify-center p-5 bg-neutral-950 rounded-2xl border border-neutral-800 my-2">
-        <div class="relative flex items-center justify-center w-24 h-24">
-          <div class="absolute w-20 h-20 rounded-full bg-gradient-to-tr from-cyan-500 via-indigo-500 to-fuchsia-500 blur-xl opacity-70 animate-pulse"></div>
-          <div class="relative w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-2xl flex items-center justify-center border border-white/20">
-            <div class="w-6 h-6 rounded-full bg-white/10 backdrop-blur-sm animate-ping"></div>
+      <div class="flex flex-col items-center justify-center p-4 bg-neutral-950 rounded-2xl border border-neutral-800 my-2">
+        <div class="relative flex items-center justify-center w-20 h-20">
+          <div class="absolute w-16 h-16 rounded-full bg-gradient-to-tr from-cyan-500 via-indigo-500 to-fuchsia-500 blur-xl opacity-70 animate-pulse"></div>
+          <div class="relative w-12 h-12 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-2xl flex items-center justify-center border border-white/20">
+            <div class="w-5 h-5 rounded-full bg-white/10 backdrop-blur-sm animate-ping"></div>
           </div>
         </div>
-        <p class="mt-3 text-[11px] font-mono text-cyan-400 tracking-wider uppercase animate-pulse">{status_text}</p>
+        <p class="mt-2.5 text-[10px] sm:text-xs font-mono text-cyan-400 tracking-wider uppercase animate-pulse">{status_text}</p>
       </div>
     </body>
     </html>
     """
-    components.html(html_code, height=170, scrolling=False)
+    components.html(html_code, height=155, scrolling=False)
 
 def render_smooth_metrics(hops: int, confidence: float, nodes_count: int, query_time: str):
     html_code = f"""
@@ -127,7 +126,7 @@ def render_smooth_metrics(hops: int, confidence: float, nodes_count: int, query_
     </body>
     </html>
     """
-    components.html(html_code, height=170, scrolling=False)
+    components.html(html_code, height=195, scrolling=True)
 
 def render_smooth_tags(peel: bool, sweep: bool, sealed: bool = True):
     peel_badge = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-950/60 text-amber-300 border border-amber-800/50">⚡ Peel Tagged</span>' if peel else '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-neutral-900 text-neutral-400 border border-neutral-800">No Peel Split</span>'
@@ -150,7 +149,7 @@ def render_smooth_tags(peel: bool, sweep: bool, sealed: bool = True):
     </body>
     </html>
     """
-    components.html(html_code, height=45, scrolling=False)
+    components.html(html_code, height=50, scrolling=False)
 
 def render_crypto_address_card(title: str, address: str, tx_hash: str, vasp_name: str, usd_val: float):
     html_code = f"""
@@ -179,7 +178,7 @@ def render_crypto_address_card(title: str, address: str, tx_hash: str, vasp_name
     </body>
     </html>
     """
-    components.html(html_code, height=160, scrolling=False)
+    components.html(html_code, height=170, scrolling=False)
 
 def render_graph(graph: nx.DiGraph) -> str:
     net = Network(height="460px", width="100%", bgcolor="#0d0d0d", font_color="#f0f0f0", directed=True)
@@ -287,7 +286,7 @@ def render_sidebar(supabase_client, vasp_directory, api_key) -> dict:
     </html>
     """
     with st.sidebar:
-        components.html(avatar_html, height=65, scrolling=False)
+        components.html(avatar_html, height=70, scrolling=False)
 
         if st.button("Log out", use_container_width=True):
             st.session_state["auth_user"] = None
@@ -402,6 +401,25 @@ def _render_findings(graph, attributions, hops_reached, elapsed, api_calls,
         else:
             st.caption("Audit Status: Logged in local session cache")
 
+    # AI Case Explainer Brief
+    if top_attribution:
+        brief_md = generate_investigation_brief(
+            suspect_wallet=suspect_wallet,
+            chain_name=chain_name,
+            top_attribution=top_attribution,
+            hops=hops_reached,
+            peel_detected=peel_detected,
+            sweep_detected=sweep_detected
+        )
+        st.markdown(
+            f"""
+            <div style="background-color: #0c1322; border: 1px solid #1e293b; border-radius: 12px; padding: 18px; margin: 18px 0; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.2);">
+                {brief_md}
+            </div>
+            """,
+            unsafe_allow_html=True
+        )
+
     st.subheader("Statutory Legal Notice")
     if top_attribution:
         investigator = st.session_state.get("auth_user")
@@ -436,8 +454,8 @@ def render_investigation_tab(settings, api_key, vasp_directory, supabase_client)
 
     st.markdown("**Real-World Incident Presets:**")
     p1, p2, p3 = st.columns(3)
-    if p1.button("📌 WazirX Breach (ETH)"):
-        st.session_state["wallet_input_box"] = "0x27fD43BABfbe83a81d14665b1a6fB8030A60C9b4"
+    if p1.button("📌 WazirX Exploiter (ETH)"):
+        st.session_state["wallet_input_box"] = "0x04b21735E93Fa3f8df70e2Da89e6922616891a88"
     if p2.button("📌 Poly Network (ETH)"):
         st.session_state["wallet_input_box"] = "0xC8a65Fadf0e0dDAf421F28FEAb69Bf6E2E589963"
     if p3.button("📌 Binance Hot Wallet (BTC)"):

@@ -170,20 +170,8 @@ CASES = {
             "Tornado Cash Router contract (OFAC Sanctioned Entity)."
         ),
         "chain_family": "evm",
-        "victim_wallet": "0x27fD43BABfbe83a81d14665b1a6fB8030A60C9b4",
+        "victim_wallet": "0x04b21735E93Fa3f8df70e2Da89e6922616891a88",
         "trail": [
-            {
-                "from": "0x27fD43BABfbe83a81d14665b1a6fB8030A60C9b4",
-                "to": "0x04b21735E93Fa3f8df70e2Da89e6922616891a88",
-                "amount": 5433.0,
-                "symbol": "ETH",
-                "usd": 18472200.0,
-                "hash": "0x58e4861433eba2184ffa39bfdc604cee872305970d4da6f38cdbf62a311957a6",
-                "hop": 1,
-                "vasp_name": None,
-                "taint_score": 1.0,
-                "is_peel": False,
-            },
             {
                 "from": "0x04b21735E93Fa3f8df70e2Da89e6922616891a88",
                 "to": "0x8589427373d6d84e98730d7795d8f6f8731fda0",
@@ -191,9 +179,9 @@ CASES = {
                 "symbol": "ETH",
                 "usd": 340000.0,
                 "hash": "0x3a9cb7127e77747e452601ab03932fa5a73e6559bc8bb2798e4f16bc46a6fcf7",
-                "hop": 2,
+                "hop": 1,
                 "vasp_name": "SANCTIONED: Tornado Cash Router (OFAC/SDN)",
-                "taint_score": 0.88,
+                "taint_score": 1.0,
                 "is_peel": True,
             }
         ],
@@ -214,7 +202,7 @@ def build_case_replay_graph(case_id: str):
     
     graph.add_node(
         start_key, role="source", hop=0, is_replay=True, taint=1.0,
-        label=f"Compromised Proxy [REPLAY]\n{start_key[:10]}..."
+        label=f"Exploiter Consolidator [REPLAY]\n{start_key[:10]}..."
     )
 
     for hop_data in case["trail"]:
