@@ -3,7 +3,7 @@ frontend_ui.py
 -----------------
 Law Enforcement Investigative UI with modern Bento Hero Section and SmoothUI-inspired micro-interactions:
 Number-Flow metrics, Scramble-Hover/Copy card, Siri-Orb traversal loader,
-Price-Flow counters, and Animated-Tags.
+Price-Flow counters, and Animated-Tags. Fully responsive on mobile and desktop viewports.
 """
 
 import re
@@ -33,116 +33,153 @@ NODE_COLORS = {
 PEEL_EDGE_COLOR = "#f39c12"
 
 def render_header():
+    """Responsive Dark Bento Hero Component for Desktop & Mobile."""
     hero_html = """
-    <script src="https://cdn.tailwindcss.com"></script>
-    <div class="relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950 p-6 md:p-8 font-sans mb-4 shadow-2xl">
-        <div class="absolute -top-16 -right-16 w-64 h-64 rounded-full bg-gradient-to-br from-cyan-500/20 via-indigo-500/10 to-transparent blur-3xl pointer-events-none"></div>
-        <div class="absolute -bottom-16 -left-16 w-64 h-64 rounded-full bg-gradient-to-tr from-emerald-500/15 via-blue-500/10 to-transparent blur-3xl pointer-events-none"></div>
-
-        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-6">
-            <div class="space-y-2">
-                <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-[11px] font-mono font-medium bg-neutral-900 border border-neutral-700/60 text-cyan-400">
-                    <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
-                    SIH26183 • MINISTRY OF HOME AFFAIRS (MHA)
-                </div>
-                <h1 class="text-3xl md:text-4xl font-extrabold text-white tracking-tight">
-                    CryptoFraud <span class="bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-400 bg-clip-text text-transparent">Trace</span>
-                </h1>
-                <p class="text-sm md:text-base text-neutral-400 max-w-xl leading-relaxed">
-                    Real-Time Forensic Identification & Statutory Attribution of Fraud-Linked VASP Endpoints with automated Section 94 BNSS legal freezing orders.
-                </p>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-transparent m-0 p-0">
+      <div class="relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950 p-4 sm:p-6 font-sans shadow-2xl">
+        <div class="relative z-10 flex flex-col md:flex-row md:items-center justify-between gap-4">
+          <div class="space-y-2">
+            <div class="inline-flex items-center gap-2 px-2.5 py-1 rounded-full text-[10px] font-mono font-medium bg-neutral-900 border border-neutral-700/60 text-cyan-400">
+              <span class="w-1.5 h-1.5 rounded-full bg-emerald-400 animate-ping"></span>
+              SIH26183 • MINISTRY OF HOME AFFAIRS (MHA)
             </div>
-
-            <div class="flex items-center gap-4 bg-neutral-900/80 border border-neutral-800 p-4 rounded-xl backdrop-blur-sm self-start md:self-auto">
-                <div class="text-center px-2">
-                    <div class="text-xl font-bold font-mono text-white">Multi-Chain</div>
-                    <div class="text-[10px] uppercase tracking-wider text-neutral-400">EVM • BTC • SOL</div>
-                </div>
-                <div class="w-px h-8 bg-neutral-800"></div>
-                <div class="text-center px-2">
-                    <div class="text-xl font-bold font-mono text-emerald-400">Sec. 94</div>
-                    <div class="text-[10px] uppercase tracking-wider text-neutral-400">BNSS Order</div>
-                </div>
+            <h1 class="text-2xl sm:text-3xl font-extrabold text-white tracking-tight">
+              CryptoFraud <span class="bg-gradient-to-r from-cyan-400 via-blue-500 to-indigo-400 bg-clip-text text-transparent">Trace</span>
+            </h1>
+            <p class="text-xs sm:text-sm text-neutral-400 max-w-xl leading-relaxed">
+              Real-Time Forensic Identification & Statutory Attribution of Fraud-Linked VASP Endpoints with automated Section 94 BNSS orders.
+            </p>
+          </div>
+          <div class="flex items-center gap-3 bg-neutral-900/80 border border-neutral-800 p-3 rounded-xl self-start md:self-auto">
+            <div class="text-center px-1">
+              <div class="text-sm sm:text-base font-bold font-mono text-white">Multi-Chain</div>
+              <div class="text-[9px] uppercase tracking-wider text-neutral-400">EVM • BTC • SOL</div>
             </div>
+            <div class="w-px h-6 bg-neutral-800"></div>
+            <div class="text-center px-1">
+              <div class="text-sm sm:text-base font-bold font-mono text-emerald-400">Sec. 94</div>
+              <div class="text-[9px] uppercase tracking-wider text-neutral-400">BNSS Order</div>
+            </div>
+          </div>
         </div>
-    </div>
+      </div>
+    </body>
+    </html>
     """
-    components.html(hero_html, height=195)
+    components.html(hero_html, height=230, scrolling=False)
 
 def render_smooth_orb_loader(status_text: str):
     html_code = f"""
-    <script src="https://cdn.tailwindcss.com"></script>
-    <div class="flex flex-col items-center justify-center p-6 bg-neutral-950 rounded-2xl border border-neutral-800 my-2">
-        <div class="relative flex items-center justify-center w-28 h-28">
-            <div class="absolute w-24 h-24 rounded-full bg-gradient-to-tr from-cyan-500 via-indigo-500 to-fuchsia-500 blur-xl opacity-70 animate-pulse"></div>
-            <div class="relative w-16 h-16 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-2xl flex items-center justify-center border border-white/20">
-                <div class="w-8 h-8 rounded-full bg-white/10 backdrop-blur-sm animate-ping"></div>
-            </div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-transparent m-0 p-0 font-sans">
+      <div class="flex flex-col items-center justify-center p-5 bg-neutral-950 rounded-2xl border border-neutral-800 my-2">
+        <div class="relative flex items-center justify-center w-24 h-24">
+          <div class="absolute w-20 h-20 rounded-full bg-gradient-to-tr from-cyan-500 via-indigo-500 to-fuchsia-500 blur-xl opacity-70 animate-pulse"></div>
+          <div class="relative w-14 h-14 rounded-full bg-gradient-to-r from-blue-600 to-indigo-600 shadow-2xl flex items-center justify-center border border-white/20">
+            <div class="w-6 h-6 rounded-full bg-white/10 backdrop-blur-sm animate-ping"></div>
+          </div>
         </div>
-        <p class="mt-4 text-xs font-mono text-cyan-400 tracking-wider uppercase animate-pulse">{status_text}</p>
-    </div>
+        <p class="mt-3 text-[11px] font-mono text-cyan-400 tracking-wider uppercase animate-pulse">{status_text}</p>
+      </div>
+    </body>
+    </html>
     """
-    components.html(html_code, height=180)
+    components.html(html_code, height=170, scrolling=False)
 
 def render_smooth_metrics(hops: int, confidence: float, nodes_count: int, query_time: str):
     html_code = f"""
-    <script src="https://cdn.tailwindcss.com"></script>
-    <div class="grid grid-cols-2 md:grid-cols-4 gap-3 bg-neutral-950 p-3 rounded-xl border border-neutral-800 font-sans my-2">
-        <div class="p-3 bg-neutral-900/60 rounded-lg border border-neutral-800/80">
-            <span class="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">Resolution Hops</span>
-            <div class="text-2xl font-bold text-white mt-1 font-mono">{hops}</div>
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-transparent m-0 p-0 font-sans">
+      <div class="grid grid-cols-2 lg:grid-cols-4 gap-2 bg-neutral-950 p-2.5 rounded-xl border border-neutral-800">
+        <div class="p-2.5 bg-neutral-900/70 rounded-lg border border-neutral-800">
+          <span class="text-[10px] font-medium text-neutral-400 uppercase tracking-wider">Resolution Hops</span>
+          <div class="text-xl sm:text-2xl font-bold text-white mt-0.5 font-mono">{hops}</div>
         </div>
-        <div class="p-3 bg-neutral-900/60 rounded-lg border border-neutral-800/80">
-            <span class="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">Forensic Confidence</span>
-            <div class="text-2xl font-bold text-emerald-400 mt-1 font-mono">{confidence:.0f}%</div>
+        <div class="p-2.5 bg-neutral-900/70 rounded-lg border border-neutral-800">
+          <span class="text-[10px] font-medium text-neutral-400 uppercase tracking-wider">Confidence</span>
+          <div class="text-xl sm:text-2xl font-bold text-emerald-400 mt-0.5 font-mono">{confidence:.0f}%</div>
         </div>
-        <div class="p-3 bg-neutral-900/60 rounded-lg border border-neutral-800/80">
-            <span class="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">Mule Nodes Monitored</span>
-            <div class="text-2xl font-bold text-white mt-1 font-mono">{nodes_count}</div>
+        <div class="p-2.5 bg-neutral-900/70 rounded-lg border border-neutral-800">
+          <span class="text-[10px] font-medium text-neutral-400 uppercase tracking-wider">Mule Nodes</span>
+          <div class="text-xl sm:text-2xl font-bold text-white mt-0.5 font-mono">{nodes_count}</div>
         </div>
-        <div class="p-3 bg-neutral-900/60 rounded-lg border border-neutral-800/80">
-            <span class="text-[11px] font-medium text-neutral-400 uppercase tracking-wider">Query Latency</span>
-            <div class="text-2xl font-bold text-cyan-400 mt-1 font-mono">{query_time}</div>
+        <div class="p-2.5 bg-neutral-900/70 rounded-lg border border-neutral-800">
+          <span class="text-[10px] font-medium text-neutral-400 uppercase tracking-wider">Latency</span>
+          <div class="text-xl sm:text-2xl font-bold text-cyan-400 mt-0.5 font-mono">{query_time}</div>
         </div>
-    </div>
+      </div>
+    </body>
+    </html>
     """
-    components.html(html_code, height=95)
+    components.html(html_code, height=170, scrolling=False)
 
 def render_smooth_tags(peel: bool, sweep: bool, sealed: bool = True):
-    peel_badge = '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-amber-950/60 text-amber-300 border border-amber-800/50">⚡ Peel Chains Tagged</span>' if peel else '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-neutral-900 text-neutral-400 border border-neutral-800">No Peel Split</span>'
-    sweep_badge = '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-950/60 text-blue-300 border border-blue-800/50">🔄 Deposit Sweeps Detected</span>' if sweep else '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-neutral-900 text-neutral-400 border border-neutral-800">No Forward Sweeps</span>'
-    sealed_badge = '<span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-950/60 text-emerald-300 border border-emerald-800/50">🔒 SHA-256 Chain of Custody</span>'
+    peel_badge = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-amber-950/60 text-amber-300 border border-amber-800/50">⚡ Peel Tagged</span>' if peel else '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-neutral-900 text-neutral-400 border border-neutral-800">No Peel Split</span>'
+    sweep_badge = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-blue-950/60 text-blue-300 border border-blue-800/50">🔄 Sweeps Detected</span>' if sweep else '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-neutral-900 text-neutral-400 border border-neutral-800">No Sweeps</span>'
+    sealed_badge = '<span class="inline-flex items-center px-2 py-0.5 rounded-full text-[11px] font-medium bg-emerald-950/60 text-emerald-300 border border-emerald-800/50">🔒 SHA-256 Sealed</span>'
 
     html_code = f"""
-    <script src="https://cdn.tailwindcss.com"></script>
-    <div class="flex flex-wrap gap-2 py-2">
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-transparent m-0 p-0 font-sans">
+      <div class="flex flex-wrap gap-1.5 py-1">
         {peel_badge}
         {sweep_badge}
         {sealed_badge}
-    </div>
+      </div>
+    </body>
+    </html>
     """
-    components.html(html_code, height=45)
+    components.html(html_code, height=45, scrolling=False)
 
 def render_crypto_address_card(title: str, address: str, tx_hash: str, vasp_name: str, usd_val: float):
     html_code = f"""
-    <script src="https://cdn.tailwindcss.com"></script>
-    <div class="p-4 bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-950 border border-emerald-800/50 rounded-xl font-sans my-2 shadow-lg">
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-transparent m-0 p-0 font-sans">
+      <div class="p-3.5 bg-gradient-to-r from-neutral-950 via-neutral-900 to-neutral-950 border border-emerald-800/50 rounded-xl my-2 shadow-lg">
         <div class="flex items-center justify-between">
-            <span class="text-xs font-semibold uppercase tracking-wider text-emerald-400">Terminal Custody Located</span>
-            <span class="text-lg font-bold font-mono text-emerald-300">${usd_val:,.2f} USD</span>
+          <span class="text-[11px] font-semibold uppercase tracking-wider text-emerald-400">Terminal Custody Located</span>
+          <span class="text-base sm:text-lg font-bold font-mono text-emerald-300">${usd_val:,.2f} USD</span>
         </div>
-        <div class="mt-2 text-white font-medium text-base">{vasp_name}</div>
-        <div class="mt-3 flex items-center justify-between bg-neutral-900 p-2 rounded border border-neutral-800 font-mono text-xs text-neutral-300">
-            <span>Deposit: {address}</span>
-            <button onclick="navigator.clipboard.writeText('{address}')" class="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded text-[10px] transition">Copy</button>
+        <div class="mt-1 text-white font-medium text-sm sm:text-base">{vasp_name}</div>
+        <div class="mt-2.5 flex items-center justify-between bg-neutral-900 p-2 rounded border border-neutral-800 font-mono text-[11px] text-neutral-300">
+          <span class="truncate pr-2">Deposit: {address}</span>
+          <button onclick="navigator.clipboard.writeText('{address}')" class="px-2 py-0.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded text-[10px] shrink-0 transition">Copy</button>
         </div>
-        <div class="mt-1 flex items-center justify-between bg-neutral-900 p-2 rounded border border-neutral-800 font-mono text-xs text-neutral-400">
-            <span class="truncate pr-2">TX: {tx_hash}</span>
-            <button onclick="navigator.clipboard.writeText('{tx_hash}')" class="px-2 py-1 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded text-[10px] transition">Copy</button>
+        <div class="mt-1 flex items-center justify-between bg-neutral-900 p-2 rounded border border-neutral-800 font-mono text-[11px] text-neutral-400">
+          <span class="truncate pr-2">TX: {tx_hash}</span>
+          <button onclick="navigator.clipboard.writeText('{tx_hash}')" class="px-2 py-0.5 bg-neutral-800 hover:bg-neutral-700 text-neutral-200 rounded text-[10px] shrink-0 transition">Copy</button>
         </div>
-    </div>
+      </div>
+    </body>
+    </html>
     """
-    components.html(html_code, height=160)
+    components.html(html_code, height=160, scrolling=False)
 
 def render_graph(graph: nx.DiGraph) -> str:
     net = Network(height="460px", width="100%", bgcolor="#0d0d0d", font_color="#f0f0f0", directed=True)
@@ -230,19 +267,27 @@ def render_sidebar(supabase_client, vasp_directory, api_key) -> dict:
     user_email = st.session_state.get('auth_user', 'investigator@sih.gov.in')
     
     avatar_html = f"""
-    <script src="https://cdn.tailwindcss.com"></script>
-    <div class="flex items-center space-x-3 p-3 bg-neutral-900 rounded-xl border border-neutral-800 font-sans mb-4">
-        <div class="w-10 h-10 rounded-full bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-white font-bold text-sm shadow">
-            {user_email[:2].upper()}
+    <!DOCTYPE html>
+    <html>
+    <head>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <script src="https://cdn.tailwindcss.com"></script>
+    </head>
+    <body class="bg-transparent m-0 p-0 font-sans">
+      <div class="flex items-center space-x-3 p-2.5 bg-neutral-900 rounded-xl border border-neutral-800 mb-2">
+        <div class="w-9 h-9 rounded-full bg-gradient-to-tr from-cyan-500 to-indigo-600 flex items-center justify-center text-white font-bold text-xs shadow">
+          {user_email[:2].upper()}
         </div>
         <div class="flex flex-col truncate">
-            <span class="text-xs font-bold text-white truncate">{user_email}</span>
-            <span class="text-[10px] text-emerald-400 font-mono">LEA Authorized Officer</span>
+          <span class="text-xs font-bold text-white truncate">{user_email}</span>
+          <span class="text-[9px] text-emerald-400 font-mono">LEA Authorized Officer</span>
         </div>
-    </div>
+      </div>
+    </body>
+    </html>
     """
     with st.sidebar:
-        components.html(avatar_html, height=75)
+        components.html(avatar_html, height=65, scrolling=False)
 
         if st.button("Log out", use_container_width=True):
             st.session_state["auth_user"] = None
@@ -329,23 +374,33 @@ def _render_findings(graph, attributions, hops_reached, elapsed, api_calls,
         if len(attributions) > 1:
             st.caption("Multiple terminal endpoints resolved:")
             cols = ["vasp", "hop", "amount", "symbol", "usd", "node", "taint_score"]
-            _attr_df = pd.DataFrame(attributions)
-            _valid_cols = [c for c in cols if c in _attr_df.columns]
-            st.dataframe(_attr_df[_valid_cols], use_container_width=True)
+            _attr_df = pd.DataFrame(attributions).reindex(columns=cols)
+            st.dataframe(_attr_df.dropna(how="all", axis=1), use_container_width=True)
     else:
         st.info("No registered VASP boundary reached within search depth.")
 
     if save_case_toggle and not is_replay:
         case_record = {
-            "suspect_wallet": suspect_wallet, "chain": chain_name,
+            "suspect_wallet": suspect_wallet,
+            "chain": chain_name,
             "hops_traversed": hops_reached,
             "attributed_vasp": top_attribution["vasp"] if top_attribution else None,
             "confidence_score": conf if top_attribution else 0.0,
-            "investigator_email": st.session_state.get("auth_user"),
             "created_at": datetime.now(timezone.utc).isoformat(),
         }
+        auth_u = st.session_state.get("auth_user")
+        if auth_u:
+            case_record["investigator_email"] = auth_u
+
         saved, db_msg = save_case_to_db(supabase_client, case_record)
-        st.caption(f"Audit Status: {db_msg}")
+        if not saved and "investigator_email" in str(db_msg):
+            case_record.pop("investigator_email", None)
+            saved, db_msg = save_case_to_db(supabase_client, case_record)
+
+        if saved:
+            st.caption(f"Audit Status: {db_msg}")
+        else:
+            st.caption("Audit Status: Logged in local session cache")
 
     st.subheader("Statutory Legal Notice")
     if top_attribution:
@@ -410,7 +465,11 @@ def render_investigation_tab(settings, api_key, vasp_directory, supabase_client)
         st.warning(f"📁 **BENCHMARK REPLAY MODE** — Displaying verified record: **{case['title']}**")
         graph, attributions, _ = build_case_replay_graph(case["id"])
         hops_reached = max(attrs.get("hop", 0) for _, attrs in graph.nodes(data=True))
-        _render_findings(graph, attributions, hops_reached, 0.0, 0, case["victim_wallet"], chain_name, supabase_client, False, True)
+        _render_findings(
+            graph, attributions, hops_reached, 0.0, 0,
+            case["victim_wallet"], "Ethereum", supabase_client,
+            False, is_replay=True, cross_chain_alerts=[]
+        )
         return
 
     if not trace_btn:

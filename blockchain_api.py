@@ -156,7 +156,8 @@ def fetch_outgoing_sol_txs(address, sig_limit=6):
                 continue
         return transfers
     except Exception:
-        return []
+        pass
+    return []
 
 @st.cache_data(ttl=900, show_spinner=False)
 def fetch_transfers(wallet, chain_key, api_key):

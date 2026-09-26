@@ -44,7 +44,8 @@ INCIDENT TRACE PARTICULARS:
 STATUTORY MANDATE:
 Under Section 94 of the Bharatiya Nagarik Suraksha Sanhita (BNSS), 2023 (formerly
 Section 91 CrPC) read with Section 17 of the Prevention of Money Laundering Act
-(PMLA), 2002 (Search and Seizure), the compliance officer is hereby DIRECTED to:
+(PMLA), 2002 and Section 63 of Bharatiya Sakshya Adhiniyam (BSA), 2023, the 
+compliance officer is hereby DIRECTED to:
   a) IMMEDIATELY RESTRICT and FREEZE all account balances tied to the designated
      terminal deposit address.
   b) PRESERVE KYC logs, IP logs, linked bank accounts, and fiat withdrawal endpoints.
@@ -142,9 +143,9 @@ def generate_freeze_notice_pdf(suspect_wallet: str, chain_name: str, top_attribu
             pass
 
     mandate_p = (
-        f"Under Section 94 of the Bharatiya Nagarik Sakshya Adhiniyam / BNSS, 2023 "
+        f"Under Section 94 of the Bharatiya Nagarik Suraksha Sanhita (BNSS), 2023 "
         f"(formerly Section 91 CrPC), read with Section 17 of the Prevention of "
-        f"Money Laundering Act (PMLA), 2002, the compliance officer of <b>{vasp_clean}</b> "
+        f"Money Laundering Act (PMLA), 2002 and Section 63 BSA, 2023, the compliance officer of <b>{vasp_clean}</b> "
         f"is DIRECTED to: (a) immediately restrict and freeze all account balances "
         f"tied to the terminal deposit address above; (b) preserve KYC records, IP logs, "
         f"linked bank accounts, and fiat withdrawal endpoints; and (c) transmit an "
