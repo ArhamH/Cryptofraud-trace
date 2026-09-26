@@ -1,8 +1,7 @@
 """
 system_architecture.py
 ------------------------
-Core configuration and constants: API endpoints, chain registry, 
-regex address classifiers, and seed VASP directories.
+Core configuration, API endpoints, address classifiers, and seed VASP directories.
 """
 
 import os
@@ -94,6 +93,31 @@ STABLES = {"USDT", "USDC", "DAI", "BUSD", "TUSD", "USDP", "FDUSD"}
 STATIC_BASE_PRICES = {
     "ETH": 3400.0, "BNB": 580.0, "MATIC": 0.42, "POL": 0.42,
     "BTC": 64000.0, "SOL": 150.0, "USDT": 1.0, "USDC": 1.0, "DAI": 1.0
+}
+
+DEX_ROUTERS_EVM = {
+    "0x7a250d5630b4cf539739df2c5dacb4c659f2488d": "Uniswap V2 Router",
+    "0xe592427a0aece92de3edee1f18e0157c05861564": "Uniswap V3 Router",
+    "0x68b3465833fb72a70ecdf485e0e4c7bd8665fc45": "Uniswap V3 Router 2",
+    "0x1111111254eeb25477b68fb85ed929f73a960582": "1inch Aggregation Router V5",
+    "0x111111125421ca6dc452d289314280a0f8842a65": "1inch Aggregation Router V6",
+    "0xd9e1ce17f2641f24ae83637ab66a2cca9c378b9f": "SushiSwap Router",
+    "0x10ed43c718714eb63d5aa57b78b54704e256024e": "PancakeSwap V2 Router (BSC)",
+}
+DEX_ROUTERS_EVM = {k.lower(): v for k, v in DEX_ROUTERS_EVM.items()}
+
+BRIDGE_CONTRACTS_EVM = {
+    "0x8731d54e9d02c286767d56ac03e8037c07e01e8": "Stargate Finance Router",
+    "0x150f94b44927f078737562f0fcf3c95c01cc2376": "Stargate Finance Router (v2)",
+    "0x3ee18b2214aff97000d974cf647e7c347e8fa585": "Wormhole Token Bridge",
+    "0x765277eebeca2e31912c9946eae1021199b39c61": "Wormhole Token Bridge (v2)",
+}
+BRIDGE_CONTRACTS_EVM = {k.lower(): v for k, v in BRIDGE_CONTRACTS_EVM.items()}
+
+EVENT_TOPICS = {
+    "ERC20_TRANSFER": "0xddf252ad1be2c89b69c2b068fc378daa952ba7f163c4a11628f55a4df523b3ef",
+    "UNISWAP_V2_SWAP": "0xd78ad95fa46c994b6551d0da85fc275fe613ce37657fb8d5e3d130840159d822",
+    "UNISWAP_V3_SWAP": "0xc42079f94a6350d7e6235f29174924f928cc2ac818eb64fed8004e115fbcca67",
 }
 
 def classify_address_family(addr: str):

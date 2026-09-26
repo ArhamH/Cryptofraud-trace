@@ -3,7 +3,6 @@ legal_forensics.py
 ---------------------
 Generates formal freeze notices under Section 94 BNSS (formerly Sec. 91 CrPC) 
 and Section 17 PMLA in plain text and court-admissible PDF format with SHA-256 integrity hash.
-Sanitized for standard PDF core fonts and compliant with statutory header requirements.
 """
 
 import re

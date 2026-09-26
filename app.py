@@ -10,7 +10,7 @@ if st.query_params.get("health") == "check":
     st.stop()
 
 from system_architecture import get_api_key
-from database_admin import get_supabase_client, require_login, fetch_vasp_directory
+from data_layer import get_supabase_client, require_login, fetch_vasp_directory
 from frontend_ui import (
     render_header,
     render_sidebar,
