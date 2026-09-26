@@ -139,16 +139,15 @@ def sync_opensanctions_labels(client, api_key: str = "", chain_filter: str = Non
                 "vasp_name": f"SANCTIONED: {caption} (OFAC/OpenSanctions)"
             })
 
-    if not rows:
-        return 0, "No sanctioned records returned."
-    try:
         try:
         client.table("vasp_directory").upsert(rows, on_conflict="address").execute()
-    except Exception:
-        client.table("vasp_directory").insert(rows).execute()
         return len(rows), None
-    except Exception as e:
-        return 0, f"Database write failed: {e}"
+    except Exception:
+        try:
+            client.table("vasp_directory").insert(rows).execute()
+            return len(rows), None
+        except Exception as e:
+            return 0, f"Database write failed: {e}"
 
 def fetch_recent_cases(client, limit: int = 20):
     if client is None:
