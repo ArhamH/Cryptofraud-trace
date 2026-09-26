@@ -33,7 +33,6 @@ NODE_COLORS = {
 PEEL_EDGE_COLOR = "#f39c12"
 
 def render_header():
-    """Dark Bento Modern Hero Component."""
     hero_html = """
     <script src="https://cdn.tailwindcss.com"></script>
     <div class="relative overflow-hidden rounded-2xl border border-neutral-800 bg-neutral-950 p-6 md:p-8 font-sans mb-4 shadow-2xl">
@@ -245,26 +244,26 @@ def render_sidebar(supabase_client, vasp_directory, api_key) -> dict:
     with st.sidebar:
         components.html(avatar_html, height=75)
 
-    if st.sidebar.button("Log out"):
-        st.session_state["auth_user"] = None
-        st.rerun()
+        if st.button("Log out", use_container_width=True):
+            st.session_state["auth_user"] = None
+            st.rerun()
 
-    st.sidebar.markdown("---")
-    st.sidebar.header("Investigation Controls")
-    chain_name = st.sidebar.selectbox("Blockchain Ledger", list(CHAINS.keys()))
-    max_hops = st.sidebar.slider("Traversal Max Hops", 2, 10, 5)
-    max_branches = st.sidebar.slider("Branches per Mule Hop", 1, 4, 2)
-    detect_sweeps = st.sidebar.checkbox("Detect Deposit Sweeps", value=True)
-    exhaustive_trace = st.sidebar.checkbox("Trace all branches", value=True)
-    save_case_toggle = st.sidebar.checkbox("Persist Findings to Supabase", value=True)
+        st.markdown("---")
+        st.header("Investigation Controls")
+        chain_name = st.selectbox("Blockchain Ledger", list(CHAINS.keys()))
+        max_hops = st.slider("Traversal Max Hops", 2, 10, 5)
+        max_branches = st.slider("Branches per Mule Hop", 1, 4, 2)
+        detect_sweeps = st.checkbox("Detect Deposit Sweeps", value=True)
+        exhaustive_trace = st.checkbox("Trace all branches", value=True)
+        save_case_toggle = st.checkbox("Persist Findings to Supabase", value=True)
 
-    with st.sidebar.expander("Admin: Sanctions Sync"):
-        if st.button("Refresh Sanctions Watchlist"):
-            count, err = sync_opensanctions_labels(supabase_client)
-            if err:
-                st.error(err)
-            else:
-                st.success(f"Synced {count} sanctioned addresses.")
+        with st.expander("Admin: Sanctions Sync"):
+            if st.button("Refresh Sanctions Watchlist"):
+                count, err = sync_opensanctions_labels(supabase_client)
+                if err:
+                    st.error(err)
+                else:
+                    st.success(f"Synced {count} sanctioned addresses.")
 
     return {
         "chain_name": chain_name,

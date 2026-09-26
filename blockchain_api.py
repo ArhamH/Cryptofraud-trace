@@ -28,7 +28,7 @@ _SESSION.mount("http://", _ADAPTER)
 
 def fetch_outgoing_native_txs(address, chain_id, api_key, native_symbol, limit=20):
     params = {
-        "chainid": chain_id, "chainId": chain_id, "module": "account", "action": "txlist",
+        "chainid": chain_id, "module": "account", "action": "txlist",
         "address": address, "startblock": 0, "endblock": 99999999,
         "page": 1, "offset": limit, "sort": "desc", "apikey": api_key
     }
@@ -56,7 +56,7 @@ def fetch_outgoing_native_txs(address, chain_id, api_key, native_symbol, limit=2
 
 def fetch_outgoing_token_txs(address, chain_id, api_key, limit=20):
     params = {
-        "chainid": chain_id, "chainId": chain_id, "module": "account", "action": "tokentx",
+        "chainid": chain_id, "module": "account", "action": "tokentx",
         "address": address, "startblock": 0, "endblock": 99999999,
         "page": 1, "offset": limit, "sort": "desc", "apikey": api_key
     }
@@ -185,7 +185,7 @@ def annotate_usd_values(transfers, chain_key):
 
 @st.cache_data(ttl=1800, show_spinner=False)
 def fetch_tx_receipt_logs(tx_hash: str, chain_id: int, api_key: str):
-    params = {"chainid": chain_id, "chainId": chain_id, "module": "proxy", "action": "eth_getTransactionReceipt",
+    params = {"chainid": chain_id, "module": "proxy", "action": "eth_getTransactionReceipt",
               "txhash": tx_hash, "apikey": api_key}
     try:
         resp = _SESSION.get(ETHERSCAN_BASE_URL, params=params, timeout=10)

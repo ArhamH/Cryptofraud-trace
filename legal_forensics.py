@@ -142,7 +142,7 @@ def generate_freeze_notice_pdf(suspect_wallet: str, chain_name: str, top_attribu
             pass
 
     mandate_p = (
-        f"Under Section 94 of the Bharatiya Nagarik Suraksha Sanhita (BNSS), 2023 "
+        f"Under Section 94 of the Bharatiya Nagarik Sakshya Adhiniyam / BNSS, 2023 "
         f"(formerly Section 91 CrPC), read with Section 17 of the Prevention of "
         f"Money Laundering Act (PMLA), 2002, the compliance officer of <b>{vasp_clean}</b> "
         f"is DIRECTED to: (a) immediately restrict and freeze all account balances "

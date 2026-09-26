@@ -1,4 +1,4 @@
-# Optional — NOT required for the base app (gnn_risk_model falls back
+# Optional — NOT required for the base app (gnn_risk_model.py falls back
 # to a zero-dependency heuristic scorer without these). Install only when
 # training or running a real GraphSAGE/EvolveGCN checkpoint:
 #

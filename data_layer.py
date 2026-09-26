@@ -139,7 +139,9 @@ def sync_opensanctions_labels(client, api_key: str = "", chain_filter: str = Non
                 "vasp_name": f"SANCTIONED: {caption} (OFAC/OpenSanctions)"
             })
 
-        try:
+    if not rows:
+        return 0, "No sanctioned records returned."
+    try:
         client.table("vasp_directory").upsert(rows, on_conflict="address").execute()
         return len(rows), None
     except Exception:

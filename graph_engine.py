@@ -141,7 +141,8 @@ def trace_fund_flow(start_address, chain_key, api_key, vasp_directory,
             if wallet_key in graph.nodes:
                 graph.nodes[wallet_key]["taint"] = round(local_taint, 4)
 
-            if local_taint < 0.04:
+            # Avoid pruning valid peel splits by using a 2% floor
+            if local_taint < 0.02:
                 continue
 
             peel_keys = {k for k, _ in peel_dests}
